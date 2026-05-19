@@ -1,0 +1,31 @@
+services:
+  backend:
+    image: ghcr.io/xera-ai/xera-sample-app-backend:${TAG:-latest}
+    pull_policy: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - data:/app/data
+    environment:
+      PORT: "3000"
+      AUTO_SEED: "true"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    image: ghcr.io/xera-ai/xera-sample-app-frontend:${TAG:-latest}
+    pull_policy: always
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  data:
