@@ -48,6 +48,7 @@ export const tasks = sqliteTable('tasks', {
   priority: text('priority').default('medium'),
   assigneeId: text('assignee_id'),
   dueDate: text('due_date'),
+  notes: text('notes'),
   createdAt: integer('created_at'),
   updatedAt: integer('updated_at'),
 })
@@ -71,4 +72,15 @@ export const labels = sqliteTable('labels', {
 export const taskLabels = sqliteTable('task_labels', {
   taskId: text('task_id').notNull(),
   labelId: text('label_id').notNull(),
+})
+
+export const attachments = sqliteTable('attachments', {
+  id: text('id').primaryKey(),
+  taskId: text('task_id').notNull(),
+  uploadedBy: text('uploaded_by').notNull(),
+  originalName: text('original_name').notNull(),
+  storedName: text('stored_name').notNull(),
+  mimeType: text('mime_type'),
+  size: integer('size'),
+  createdAt: integer('created_at'),
 })

@@ -73,7 +73,7 @@ export function ProjectsPage() {
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-hairline">
                 <span className="text-xs text-mute">
-                  {project.members?.length ?? 0} member{project.members?.length !== 1 ? 's' : ''}
+                  {(project as any).memberCount ?? 0} member{((project as any).memberCount ?? 0) !== 1 ? 's' : ''}
                 </span>
                 <Button
                   size="sm"

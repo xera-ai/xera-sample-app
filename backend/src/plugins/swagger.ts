@@ -8,9 +8,9 @@ export default fp(async function swaggerPlugin(fastify: FastifyInstance) {
     openapi: {
       openapi: '3.0.3',
       info: {
-        title: 'TaskFlow API',
+        title: 'FlowBoard API',
         version: '1.0.0',
-        description: 'TaskFlow project management API',
+        description: 'FlowBoard project management API',
       },
       components: {
         securitySchemes: {

@@ -3,7 +3,10 @@ import type { FastifyInstance } from 'fastify'
 import { runSeed } from '../lib/seed.js'
 
 export default async function seedRoutes(fastify: FastifyInstance) {
-  if (process.env.NODE_ENV === 'production') return
+  const autoSeed = process.env.AUTO_SEED
+    ? process.env.AUTO_SEED === 'true'
+    : process.env.NODE_ENV !== 'production'
+  if (!autoSeed) return
 
   fastify.post('/seed', {
     schema: {

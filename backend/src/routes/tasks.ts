@@ -19,6 +19,7 @@ const taskSchema = {
     priority: { type: 'string', nullable: true },
     assigneeId: { type: 'string', nullable: true },
     dueDate: { type: 'string', nullable: true },
+    notes: { type: 'string', nullable: true },
     createdAt: { type: 'number', nullable: true },
     updatedAt: { type: 'number', nullable: true },
   },
@@ -138,6 +139,7 @@ export default async function tasksRoutes(fastify: FastifyInstance) {
           priority: { type: 'string', enum: ['low', 'medium', 'high'] },
           assigneeId: { type: 'string' },
           dueDate: { type: 'string' },
+          notes: { type: 'string' },
         },
       },
       response: {
@@ -251,6 +253,7 @@ export default async function tasksRoutes(fastify: FastifyInstance) {
           priority: { type: 'string' },
           assigneeId: { type: 'string' },
           dueDate: { type: 'string' },
+          notes: { type: 'string' },
         },
       },
       response: {
@@ -265,7 +268,7 @@ export default async function tasksRoutes(fastify: FastifyInstance) {
     preHandler: authenticate,
   }, async (request: FastifyRequest<{
     Params: { id: string }
-    Body: { title?: string; description?: string; status?: string; priority?: string; assigneeId?: string; dueDate?: string }
+    Body: { title?: string; description?: string; status?: string; priority?: string; assigneeId?: string; dueDate?: string; notes?: string }
   }>, reply: FastifyReply) => {
     const task = await checkTaskProjectAccess(request.user.id, request.params.id, request.user.role, reply)
     if (!task) return
@@ -278,6 +281,7 @@ export default async function tasksRoutes(fastify: FastifyInstance) {
     if (body.priority !== undefined) updates.priority = body.priority
     if (body.assigneeId !== undefined) updates.assigneeId = body.assigneeId
     if (body.dueDate !== undefined) updates.dueDate = body.dueDate
+    if (body.notes !== undefined) updates.notes = body.notes
 
     if (Object.keys(updates).length > 0) {
       await db.update(tasks).set(updates).where(eq(tasks.id, task.id))

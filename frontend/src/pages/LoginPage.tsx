@@ -38,7 +38,7 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-canvas-soft px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-ink">TaskFlow</h1>
+          <h1 className="text-2xl font-semibold text-ink">FlowBoard</h1>
           <p className="text-sm text-mute mt-1">Sign in to your account</p>
         </div>
 

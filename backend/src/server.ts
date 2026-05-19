@@ -39,6 +39,9 @@ export async function buildServer() {
   await fastify.register(rateLimitPlugin)
   await fastify.register(swaggerPlugin)
   await fastify.register(authPlugin)
+  await fastify.register(import('@fastify/multipart'), {
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB — intentionally permissive for security testing
+  })
 
   // Import routes
   const healthRoutes = (await import('./routes/health.js')).default
@@ -51,6 +54,7 @@ export async function buildServer() {
   const tasksRoutes = (await import('./routes/tasks.js')).default
   const commentsRoutes = (await import('./routes/comments.js')).default
   const labelsRoutes = (await import('./routes/labels.js')).default
+  const attachmentsRoutes = (await import('./routes/attachments.js')).default
 
   // Register routes (health and metrics outside API prefix)
   await fastify.register(healthRoutes)
@@ -66,6 +70,7 @@ export async function buildServer() {
     await api.register(tasksRoutes)
     await api.register(commentsRoutes)
     await api.register(labelsRoutes)
+    await api.register(attachmentsRoutes)
   }, { prefix: '/api/v1' })
 
   return fastify
@@ -79,8 +84,13 @@ export async function main() {
     await fastify.listen({ port, host: '0.0.0.0' })
     console.log(`Server running on port ${port}`)
 
-    // Auto-seed on first boot when DB is empty
-    if (process.env.NODE_ENV !== 'production') {
+    // Auto-seed on first boot when DB is empty.
+    // Controlled by AUTO_SEED env var (default: true unless NODE_ENV=production).
+    const autoSeed = process.env.AUTO_SEED
+      ? process.env.AUTO_SEED === 'true'
+      : process.env.NODE_ENV !== 'production'
+
+    if (autoSeed) {
       const { isDbEmpty, runSeed } = await import('./lib/seed.js')
       if (await isDbEmpty()) {
         fastify.log.info('Empty database detected — running auto-seed...')

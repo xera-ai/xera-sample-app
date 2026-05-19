@@ -16,6 +16,7 @@ const projectSchema = {
     description: { type: 'string', nullable: true },
     ownerId: { type: 'string' },
     createdAt: { type: 'number', nullable: true },
+    memberCount: { type: 'number' },
   },
 }
 
@@ -121,8 +122,15 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
       projectList = filteredProjects.slice(offset, offset + parsedLimit)
     }
 
+    // Attach member counts
+    const allMembers = await db.select().from(projectMembers)
+    const memberCountMap: Record<string, number> = {}
+    for (const m of allMembers) {
+      memberCountMap[m.projectId] = (memberCountMap[m.projectId] ?? 0) + 1
+    }
+
     return reply.send({
-      data: projectList,
+      data: projectList.map(p => ({ ...p, memberCount: memberCountMap[p.id] ?? 0 })),
       meta: buildMeta(total, Number(page), parsedLimit),
     })
   })

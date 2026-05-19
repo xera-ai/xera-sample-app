@@ -109,6 +109,58 @@ export async function runSeed(): Promise<{ adminApiKey: string; userApiKey: stri
     await db.insert(comments).values({ ...c, createdAt: now, updatedAt: now })
   }
 
+  // Generate 45 additional tasks per project (to reach 50 total per project)
+  const statuses = ['todo', 'in_progress', 'done'] as const
+  const priorities = ['low', 'medium', 'high'] as const
+  const assignees = ['user-admin-1', 'user-1'] as const
+  const shortNames = [
+    'Implement feature', 'Fix bug', 'Write tests', 'Code review', 'Deploy update',
+    'Update docs', 'Refactor code', 'Add logging', 'Optimize query', 'Security audit',
+  ]
+
+  let taskCounter = 16 // next task id after task-15
+  let commentCounter = 11 // next comment id after comment-10
+
+  for (const projectId of projectData.map(p => p.id)) {
+    for (let i = 1; i <= 45; i++) {
+      const globalI = taskCounter
+      const taskId = `task-${globalI}`
+      const shortName = shortNames[(i - 1) % shortNames.length]
+      const title = `Task ${globalI}: ${shortName}`
+      const status = statuses[(i - 1) % statuses.length]
+      const priority = priorities[(i - 1) % priorities.length]
+      const assigneeId = assignees[(i - 1) % assignees.length]
+      const createdAt = Math.floor(Date.now() / 1000) - i * 3600
+
+      await db.insert(tasks).values({
+        id: taskId,
+        projectId,
+        title,
+        description: `Description for task ${globalI} in project ${projectId}`,
+        status,
+        priority,
+        assigneeId,
+        dueDate: null,
+        createdAt,
+        updatedAt: createdAt,
+      })
+
+      // Add 1 comment per new task, alternating author
+      const commentAuthor = assignees[(i - 1) % assignees.length]
+      await db.insert(comments).values({
+        id: `comment-${commentCounter}`,
+        taskId,
+        authorId: commentAuthor,
+        body: `Comment on task ${globalI}: ${shortName}`,
+        createdAt,
+        updatedAt: createdAt,
+      })
+
+      taskCounter++
+      commentCounter++
+    }
+  }
+
   const adminRawKey = randomBytes(32).toString('hex')
   await db.insert(apiKeys).values({
     id: 'apikey-admin-1', userId: 'user-admin-1', name: 'Admin Default Key',

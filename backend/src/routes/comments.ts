@@ -2,8 +2,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { v4 as uuidv4 } from 'uuid'
 import { db } from '../db/index.js'
-import { comments, tasks } from '../db/schema.js'
-import { eq, and, sql } from 'drizzle-orm'
+import { comments, tasks, users } from '../db/schema.js'
+import { eq, and, inArray } from 'drizzle-orm'
 import { authenticate } from '../middleware/authenticate.js'
 import { checkProjectAccess } from '../lib/project-access.js'
 import { parsePagination, buildMeta } from '../lib/pagination.js'
@@ -16,6 +16,15 @@ const commentSchema = {
     authorId: { type: 'string' },
     body: { type: 'string' },
     createdAt: { type: 'number', nullable: true },
+    author: {
+      type: 'object',
+      nullable: true,
+      properties: {
+        id: { type: 'string' },
+        name: { type: 'string' },
+        email: { type: 'string' },
+      },
+    },
   },
 }
 
@@ -75,8 +84,15 @@ export default async function commentsRoutes(fastify: FastifyInstance) {
     const total = allComments.length
     const paginated = allComments.slice(offset, offset + parsedLimit)
 
+    // Attach author info
+    const authorIds = [...new Set(paginated.map(c => c.authorId))]
+    const authorRows = authorIds.length
+      ? await db.select().from(users).where(inArray(users.id, authorIds))
+      : []
+    const authorMap = Object.fromEntries(authorRows.map(u => [u.id, { id: u.id, name: u.name, email: u.email }]))
+
     return reply.send({
-      data: paginated,
+      data: paginated.map(c => ({ ...c, author: authorMap[c.authorId] ?? null })),
       meta: buildMeta(total, Number(page), parsedLimit),
     })
   })

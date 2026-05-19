@@ -22,6 +22,8 @@ export interface Project {
 export interface Member {
   userId: string
   role: string
+  name?: string
+  email?: string
   user?: User
 }
 
@@ -35,6 +37,7 @@ export interface Task {
   assigneeId?: string
   dueDate?: string
   createdAt: number
+  notes?: string
   labels?: Label[]
 }
 
@@ -52,6 +55,16 @@ export interface Label {
   projectId: string
   name: string
   color: string
+}
+
+export interface Attachment {
+  id: string
+  taskId: string
+  uploadedBy: string
+  originalName: string
+  mimeType?: string
+  size?: number
+  createdAt: number
 }
 
 export interface ApiKey {
@@ -146,7 +159,7 @@ export const authApi = {
   logout: (refresh_token: string) =>
     api.post('/auth/logout', { refresh_token }).then(() => undefined),
 
-  me: () => api.get<User>('/auth/me').then((r) => r.data),
+  me: () => api.get<{ user: User }>('/auth/me').then((r) => r.data.user),
 }
 
 // --- Projects API ---
@@ -155,17 +168,18 @@ export const projectsApi = {
   list: (params?: { page?: number; limit?: number }) =>
     api.get<PaginatedResponse<Project>>('/projects', { params }).then((r) => r.data),
 
-  get: (id: string) => api.get<Project>(`/projects/${id}`).then((r) => r.data),
+  get: (id: string) => api.get<{ project: Project }>(`/projects/${id}`).then((r) => r.data.project),
 
   create: (data: { name: string; description?: string }) =>
-    api.post<Project>('/projects', data).then((r) => r.data),
+    api.post<{ project: Project }>('/projects', data).then((r) => r.data.project),
 
   update: (id: string, data: Partial<Pick<Project, 'name' | 'description'>>) =>
-    api.patch<Project>(`/projects/${id}`, data).then((r) => r.data),
+    api.patch<{ project: Project }>(`/projects/${id}`, data).then((r) => r.data.project),
 
   delete: (id: string) => api.delete(`/projects/${id}`).then(() => undefined),
 
-  getMembers: (id: string) => api.get<Member[]>(`/projects/${id}/members`).then((r) => r.data),
+  getMembers: (id: string) =>
+    api.get<{ data: Member[] }>(`/projects/${id}/members`).then((r) => r.data.data),
 
   addMember: (id: string, data: { userId: string; role?: string }) =>
     api.post<Member>(`/projects/${id}/members`, data).then((r) => r.data),
@@ -185,13 +199,13 @@ export const tasksApi = {
       .get<PaginatedResponse<Task>>(`/projects/${projectId}/tasks`, { params })
       .then((r) => r.data),
 
-  get: (id: string) => api.get<Task>(`/tasks/${id}`).then((r) => r.data),
+  get: (id: string) => api.get<{ task: Task }>(`/tasks/${id}`).then((r) => r.data.task),
 
   create: (projectId: string, data: Partial<Task>) =>
-    api.post<Task>(`/projects/${projectId}/tasks`, data).then((r) => r.data),
+    api.post<{ task: Task }>(`/projects/${projectId}/tasks`, data).then((r) => r.data.task),
 
   update: (id: string, data: Partial<Task>) =>
-    api.patch<Task>(`/tasks/${id}`, data).then((r) => r.data),
+    api.patch<{ task: Task }>(`/tasks/${id}`, data).then((r) => r.data.task),
 
   delete: (id: string) => api.delete(`/tasks/${id}`).then(() => undefined),
 }
@@ -203,10 +217,10 @@ export const commentsApi = {
     api.get<PaginatedResponse<Comment>>(`/tasks/${taskId}/comments`).then((r) => r.data),
 
   create: (taskId: string, data: { body: string }) =>
-    api.post<Comment>(`/tasks/${taskId}/comments`, data).then((r) => r.data),
+    api.post<{ comment: Comment }>(`/tasks/${taskId}/comments`, data).then((r) => r.data.comment),
 
   update: (id: string, data: { body: string }) =>
-    api.patch<Comment>(`/comments/${id}`, data).then((r) => r.data),
+    api.patch<{ comment: Comment }>(`/comments/${id}`, data).then((r) => r.data.comment),
 
   delete: (id: string) => api.delete(`/comments/${id}`).then(() => undefined),
 }
@@ -217,12 +231,29 @@ export const usersApi = {
   list: (params?: { page?: number; limit?: number }) =>
     api.get<PaginatedResponse<User>>('/users', { params }).then((r) => r.data),
 
-  get: (id: string) => api.get<User>(`/users/${id}`).then((r) => r.data),
+  get: (id: string) => api.get<{ user: User }>(`/users/${id}`).then((r) => r.data.user),
 
   update: (id: string, data: Partial<User>) =>
-    api.patch<User>(`/users/${id}`, data).then((r) => r.data),
+    api.patch<{ user: User }>(`/users/${id}`, data).then((r) => r.data.user),
 
   delete: (id: string) => api.delete(`/users/${id}`).then(() => undefined),
+}
+
+// --- Attachments API ---
+
+export const attachmentsApi = {
+  list: (taskId: string) =>
+    api.get<{ data: Attachment[] }>(`/tasks/${taskId}/attachments`).then((r) => r.data.data),
+
+  upload: (taskId: string, file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post<{ attachment: Attachment }>(`/tasks/${taskId}/attachments`, form).then((r) => r.data.attachment)
+  },
+
+  downloadUrl: (id: string) => `/api/v1/attachments/${id}/download`,
+
+  delete: (id: string) => api.delete(`/attachments/${id}`).then(() => undefined),
 }
 
 // --- API Keys ---

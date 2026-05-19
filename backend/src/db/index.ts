@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import * as schema from './schema.js'
 import { mkdirSync } from 'fs'
+import fs from 'node:fs'
 import { dirname } from 'path'
 
 const dbPath = process.env.DB_PATH ?? './data/app.db'
@@ -92,14 +93,29 @@ sqliteDb.exec(`
     task_id TEXT NOT NULL,
     label_id TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS attachments (
+    id TEXT PRIMARY KEY,
+    task_id TEXT NOT NULL,
+    uploaded_by TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    stored_name TEXT NOT NULL,
+    mime_type TEXT,
+    size INTEGER,
+    created_at INTEGER
+  );
 `)
 
 // Add columns for existing DBs that predate schema changes
 for (const [table, col, type] of [
   ['tasks', 'updated_at', 'INTEGER'],
   ['comments', 'updated_at', 'INTEGER'],
+  ['tasks', 'notes', 'TEXT'],
 ] as const) {
   try { sqliteDb.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`) } catch { /* already exists */ }
 }
+
+// Ensure uploads directory exists
+fs.mkdirSync('./data/uploads', { recursive: true })
 
 export const db = drizzle(sqliteDb, { schema })

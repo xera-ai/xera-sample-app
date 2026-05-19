@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { tasksApi, commentsApi } from '../lib/api'
+import { tasksApi, commentsApi, projectsApi, attachmentsApi } from '../lib/api'
 import type { Task } from '../lib/api'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -16,16 +16,25 @@ function formatDate(ts: number) {
   })
 }
 
+function formatBytes(bytes?: number) {
+  if (!bytes) return '—'
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export function TaskDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const toast = useToast()
   const { user } = useAuthStore()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [notes, setNotes] = useState('')
   const [commentBody, setCommentBody] = useState('')
 
   const { data: task, isLoading } = useQuery({
@@ -40,10 +49,23 @@ export function TaskDetailPage() {
     enabled: !!id,
   })
 
+  const { data: members = [] } = useQuery({
+    queryKey: ['members', task?.projectId],
+    queryFn: () => projectsApi.getMembers(task!.projectId),
+    enabled: !!task?.projectId,
+  })
+
+  const { data: attachmentsList = [] } = useQuery({
+    queryKey: ['attachments', id],
+    queryFn: () => attachmentsApi.list(id!),
+    enabled: !!id,
+  })
+
   useEffect(() => {
     if (task) {
       setTitle(task.title)
       setDescription(task.description ?? '')
+      setNotes(task.notes ?? '')
     }
   }, [task])
 
@@ -74,6 +96,21 @@ export function TaskDetailPage() {
     onError: () => toast.error('Failed to post comment'),
   })
 
+  const uploadMutation = useMutation({
+    mutationFn: (file: File) => attachmentsApi.upload(id!, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attachments', id] })
+      toast.success('File uploaded')
+    },
+    onError: () => toast.error('Upload failed'),
+  })
+
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: (attachmentId: string) => attachmentsApi.delete(attachmentId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attachments', id] }),
+    onError: () => toast.error('Failed to delete attachment'),
+  })
+
   if (isLoading) return <div className="p-8 text-sm text-mute">Loading…</div>
   if (!task) return <div className="p-8 text-sm text-error">Task not found</div>
 
@@ -91,6 +128,14 @@ export function TaskDetailPage() {
       updateMutation.mutate({ description })
     }
   }
+
+  const handleNotesBlur = () => {
+    if (notes !== (task.notes ?? '')) {
+      updateMutation.mutate({ notes })
+    }
+  }
+
+  const assigneeName = members.find((m) => m.userId === task.assigneeId)?.name ?? null
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
@@ -127,6 +172,87 @@ export function TaskDetailPage() {
               onChange={(e) => setDescription(e.target.value)}
               onBlur={handleDescriptionBlur}
             />
+          </div>
+
+          {/* HTML Notes — XSS surface */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-medium text-mute uppercase tracking-wider">HTML Notes</p>
+              <span className="text-xs text-warning bg-warning-soft rounded px-1.5 py-0.5 font-mono">
+                rendered as HTML
+              </span>
+            </div>
+            <textarea
+              className="form-input min-h-[80px] resize-y py-2 text-sm font-mono"
+              placeholder="<b>Bold text</b>, <a href='...'>links</a>, or any HTML…"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onBlur={handleNotesBlur}
+            />
+            {notes && (
+              <div
+                className="rounded-lg border border-hairline bg-canvas p-3 text-sm text-body prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: notes }}
+              />
+            )}
+          </div>
+
+          {/* Attachments */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-mute uppercase tracking-wider">
+                Attachments ({attachmentsList.length})
+              </p>
+              <button
+                className="text-xs text-link hover:underline"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                + Upload file
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) uploadMutation.mutate(file)
+                  e.target.value = ''
+                }}
+              />
+            </div>
+            {uploadMutation.isPending && (
+              <p className="text-xs text-mute">Uploading…</p>
+            )}
+            {attachmentsList.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                {attachmentsList.map((att) => (
+                  <div
+                    key={att.id}
+                    className="flex items-center justify-between rounded-lg border border-hairline bg-canvas px-3 py-2"
+                  >
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <a
+                        href={attachmentsApi.downloadUrl(att.id)}
+                        className="text-sm text-link hover:underline truncate"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {att.originalName}
+                      </a>
+                      <span className="text-xs text-mute">
+                        {formatBytes(att.size)} · {att.mimeType ?? 'unknown type'}
+                      </span>
+                    </div>
+                    <button
+                      className="text-xs text-error hover:underline ml-3 shrink-0"
+                      onClick={() => deleteAttachmentMutation.mutate(att.id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Comments */}
@@ -207,6 +333,28 @@ export function TaskDetailPage() {
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
               </select>
+            </div>
+
+            {/* Assignee */}
+            <div className="flex flex-col gap-1.5">
+              <p className="text-xs font-medium text-mute">Assignee</p>
+              <select
+                className="form-input text-xs"
+                value={task.assigneeId ?? ''}
+                onChange={(e) =>
+                  updateMutation.mutate({ assigneeId: e.target.value || undefined })
+                }
+              >
+                <option value="">Unassigned</option>
+                {members.map((m) => (
+                  <option key={m.userId} value={m.userId}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              {assigneeName && (
+                <p className="text-xs text-mute">→ {assigneeName}</p>
+              )}
             </div>
 
             {/* Due date */}

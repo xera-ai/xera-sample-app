@@ -30,7 +30,7 @@ export function NavBar() {
       <div className="mx-auto max-w-6xl h-full px-6 flex items-center gap-8">
         {/* Logo */}
         <Link to="/" className="text-base font-semibold text-ink tracking-tight shrink-0">
-          TaskFlow
+          FlowBoard
         </Link>
 
         {/* Nav links */}

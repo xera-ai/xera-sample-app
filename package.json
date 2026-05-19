@@ -1,10 +1,14 @@
 {
-  "name": "sample-app",
+  "name": "xera-sample-app",
   "private": true,
   "workspaces": [
     "backend",
     "frontend"
   ],
+  "overrides": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
   "scripts": {
     "dev:backend": "npm run dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
