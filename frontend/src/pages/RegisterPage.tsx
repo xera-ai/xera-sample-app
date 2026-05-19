@@ -4,6 +4,7 @@ import { authApi } from '../lib/api'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { useToast } from '../components/ui/Toast'
+import { AuthLayout } from '../components/app/AuthLayout'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -33,56 +34,51 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-canvas-soft px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-ink">FlowBoard</h1>
-          <p className="text-sm text-mute mt-1">Create your account</p>
-        </div>
-
-        <div className="bg-canvas rounded-xl border border-hairline shadow-card p-6">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              label="Name"
-              type="text"
-              placeholder="Jane Smith"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeholder="8+ characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-            />
-            {error && (
-              <p className="text-xs text-error bg-error-soft rounded-md px-3 py-2">{error}</p>
-            )}
-            <Button type="submit" loading={loading} className="w-full mt-1">
-              Create account
-            </Button>
-          </form>
-        </div>
-
-        <p className="text-center text-sm text-mute mt-4">
+    <AuthLayout
+      title="Create your account"
+      subtitle="Get started in seconds. No credit card required."
+      footer={
+        <>
           Already have an account?{' '}
           <Link to="/login" className="text-ink font-medium hover:underline">
             Sign in
           </Link>
-        </p>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Input
+          label="Name"
+          type="text"
+          placeholder="Jane Smith"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+        <Input
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <Input
+          label="Password"
+          type="password"
+          placeholder="8+ characters"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={8}
+        />
+        {error && (
+          <p className="text-xs text-error bg-error-soft rounded-md px-3 py-2">{error}</p>
+        )}
+        <Button type="submit" loading={loading} className="w-full mt-1">
+          Create account
+        </Button>
+      </form>
+    </AuthLayout>
   )
 }
