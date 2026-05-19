@@ -34,6 +34,21 @@ curl -X POST http://localhost:3000/api/v1/seed
 
 ## Running with Docker
 
+### Option A — Pull prebuilt images from GHCR (no build)
+
+```bash
+curl -O https://raw.githubusercontent.com/xera-ai/xera-sample-app/main/docker-compose.prod.yml
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Pin a specific version with `TAG=v1.2.3 docker compose -f docker-compose.prod.yml up -d`.
+
+Images (public, multi-arch `linux/amd64` + `linux/arm64`):
+- `ghcr.io/xera-ai/xera-sample-app-backend`
+- `ghcr.io/xera-ai/xera-sample-app-frontend`
+
+### Option B — Build locally
+
 ```bash
 docker compose up --build
 ```
