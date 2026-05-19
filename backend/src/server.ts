@@ -78,6 +78,18 @@ export async function main() {
   try {
     await fastify.listen({ port, host: '0.0.0.0' })
     console.log(`Server running on port ${port}`)
+
+    // Auto-seed on first boot when DB is empty
+    if (process.env.NODE_ENV !== 'production') {
+      const { isDbEmpty, runSeed } = await import('./lib/seed.js')
+      if (await isDbEmpty()) {
+        fastify.log.info('Empty database detected — running auto-seed...')
+        const keys = await runSeed()
+        fastify.log.info(`Auto-seed complete. admin@test.com / admin123 | user@test.com / user123`)
+        fastify.log.info(`Admin API key: ${keys.adminApiKey}`)
+        fastify.log.info(`User  API key: ${keys.userApiKey}`)
+      }
+    }
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)

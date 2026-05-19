@@ -68,7 +68,8 @@ sqliteDb.exec(`
     priority TEXT DEFAULT 'medium',
     assignee_id TEXT,
     due_date TEXT,
-    created_at INTEGER
+    created_at INTEGER,
+    updated_at INTEGER
   );
 
   CREATE TABLE IF NOT EXISTS comments (
@@ -76,7 +77,8 @@ sqliteDb.exec(`
     task_id TEXT NOT NULL,
     author_id TEXT NOT NULL,
     body TEXT NOT NULL,
-    created_at INTEGER
+    created_at INTEGER,
+    updated_at INTEGER
   );
 
   CREATE TABLE IF NOT EXISTS labels (
@@ -91,5 +93,13 @@ sqliteDb.exec(`
     label_id TEXT NOT NULL
   );
 `)
+
+// Add columns for existing DBs that predate schema changes
+for (const [table, col, type] of [
+  ['tasks', 'updated_at', 'INTEGER'],
+  ['comments', 'updated_at', 'INTEGER'],
+] as const) {
+  try { sqliteDb.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`) } catch { /* already exists */ }
+}
 
 export const db = drizzle(sqliteDb, { schema })

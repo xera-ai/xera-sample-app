@@ -20,6 +20,7 @@ const taskSchema = {
     assigneeId: { type: 'string', nullable: true },
     dueDate: { type: 'string', nullable: true },
     createdAt: { type: 'number', nullable: true },
+    updatedAt: { type: 'number', nullable: true },
   },
 }
 
@@ -54,9 +55,10 @@ export default async function tasksRoutes(fastify: FastifyInstance) {
       querystring: {
         type: 'object',
         properties: {
-          status: { type: 'string' },
-          priority: { type: 'string' },
+          status: { type: 'string', enum: ['todo', 'in_progress', 'done'] },
+          priority: { type: 'string', enum: ['low', 'medium', 'high'] },
           assigneeId: { type: 'string' },
+          search: { type: 'string', description: 'Search in title and description' },
           page: { type: 'integer', default: 1 },
           limit: { type: 'integer', default: 20 },
         },
@@ -87,7 +89,7 @@ export default async function tasksRoutes(fastify: FastifyInstance) {
     Querystring: { status?: string; priority?: string; assigneeId?: string; page?: number; limit?: number }
   }>, reply: FastifyReply) => {
     const { projectId } = request.params
-    const { status, priority, assigneeId, page = 1, limit = 20 } = request.query
+    const { status, priority, assigneeId, search, page = 1, limit = 20 } = request.query
 
     const access = await checkProjectAccess(request.user.id, projectId, request.user.role, reply)
     if (!access) return
@@ -100,6 +102,13 @@ export default async function tasksRoutes(fastify: FastifyInstance) {
     if (status) filtered = filtered.filter(t => t.status === status)
     if (priority) filtered = filtered.filter(t => t.priority === priority)
     if (assigneeId) filtered = filtered.filter(t => t.assigneeId === assigneeId)
+    if (search) {
+      const q = search.toLowerCase()
+      filtered = filtered.filter(t =>
+        t.title.toLowerCase().includes(q) ||
+        (t.description ?? '').toLowerCase().includes(q)
+      )
+    }
 
     const total = filtered.length
     const paginated = filtered.slice(offset, offset + parsedLimit)

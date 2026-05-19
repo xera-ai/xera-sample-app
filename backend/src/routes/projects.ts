@@ -41,6 +41,7 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
         properties: {
           page: { type: 'integer', default: 1 },
           limit: { type: 'integer', default: 20 },
+          search: { type: 'string', description: 'Search in name and description' },
         },
       },
       response: {
@@ -62,8 +63,8 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
       },
     },
     preHandler: authenticate,
-  }, async (request: FastifyRequest<{ Querystring: { page?: number; limit?: number } }>, reply: FastifyReply) => {
-    const { page = 1, limit = 20 } = request.query
+  }, async (request: FastifyRequest<{ Querystring: { page?: number; limit?: number; search?: string } }>, reply: FastifyReply) => {
+    const { page = 1, limit = 20, search } = request.query
     const { offset, limit: parsedLimit } = parsePagination(page, limit)
     const userId = request.user.id
     const isAdmin = request.user.role === 'admin'
@@ -72,10 +73,16 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
     let total: number
 
     if (isAdmin) {
-      // Admins see all projects
-      projectList = await db.select().from(projects).limit(parsedLimit).offset(offset)
-      const countResult = await db.select({ count: sql<number>`count(*)` }).from(projects).get()
-      total = countResult?.count ?? 0
+      let allProjects = await db.select().from(projects)
+      if (search) {
+        const q = search.toLowerCase()
+        allProjects = allProjects.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          (p.description ?? '').toLowerCase().includes(q)
+        )
+      }
+      total = allProjects.length
+      projectList = allProjects.slice(offset, offset + parsedLimit)
     } else {
       // Owner or member
       const memberProjects = await db
@@ -101,8 +108,15 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
       }
 
       // Get all projects by ids using a raw query approach
-      const allProjectsList = await db.select().from(projects)
-      const filteredProjects = allProjectsList.filter(p => allProjectIds.includes(p.id))
+      let allProjectsList = await db.select().from(projects)
+      let filteredProjects = allProjectsList.filter(p => allProjectIds.includes(p.id))
+      if (search) {
+        const q = search.toLowerCase()
+        filteredProjects = filteredProjects.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          (p.description ?? '').toLowerCase().includes(q)
+        )
+      }
       total = filteredProjects.length
       projectList = filteredProjects.slice(offset, offset + parsedLimit)
     }

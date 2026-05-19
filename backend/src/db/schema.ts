@@ -49,6 +49,7 @@ export const tasks = sqliteTable('tasks', {
   assigneeId: text('assignee_id'),
   dueDate: text('due_date'),
   createdAt: integer('created_at'),
+  updatedAt: integer('updated_at'),
 })
 
 export const comments = sqliteTable('comments', {
@@ -57,6 +58,7 @@ export const comments = sqliteTable('comments', {
   authorId: text('author_id').notNull(),
   body: text('body').notNull(),
   createdAt: integer('created_at'),
+  updatedAt: integer('updated_at'),
 })
 
 export const labels = sqliteTable('labels', {
