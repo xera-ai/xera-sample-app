@@ -28,6 +28,7 @@
 - [ ] After successful registration, automatically log in and redirect to Dashboard
 - [ ] Display a clear error if the email is already taken (409)
 - [ ] Display an error if the password is fewer than 8 characters (400)
+- [ ] Layout: 2-panel design — dark branding panel (left) + form panel (right). On mobile (<768px), branding panel collapses; form takes full width.
 
 ---
 
@@ -43,6 +44,7 @@
 - [ ] Session is persisted after page reload
 - [ ] After 15 minutes of inactivity, the access token is automatically refreshed
 - [ ] Rate limit: blocked after 20 failed attempts per minute (429)
+- [ ] Layout: 2-panel design — dark branding panel (left) + form panel (right). On mobile (<768px), branding panel collapses; form takes full width.
 
 ---
 
