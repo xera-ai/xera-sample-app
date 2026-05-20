@@ -53,7 +53,7 @@ Images (public, multi-arch `linux/amd64` + `linux/arm64`):
 docker compose up --build
 ```
 
-- UI: http://localhost:80
+- UI: http://localhost:8080
 - API: http://localhost:3000
 
 Set `AUTO_SEED=false` in `docker-compose.yml` to start with an empty database.
