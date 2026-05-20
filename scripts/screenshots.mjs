@@ -11,16 +11,21 @@ const baseUrl = process.env.BASE_URL ?? 'http://localhost:5173'
 
 const browser = await chromium.launch()
 const ctx = await browser.newContext({
-  viewport: { width: 1440, height: 900 },
-  deviceScaleFactor: 2,
+  viewport: { width: 1280, height: 800 },
+  deviceScaleFactor: 1,
 })
 const page = await ctx.newPage()
 
 async function shot(name, path) {
   await page.goto(`${baseUrl}${path}`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(500)
-  await page.screenshot({ path: `${outDir}/${name}.png`, fullPage: false })
-  console.log(`✓ ${name}.png`)
+  await page.screenshot({
+    path: `${outDir}/${name}.jpg`,
+    type: 'jpeg',
+    quality: 82,
+    fullPage: false,
+  })
+  console.log(`✓ ${name}.jpg`)
 }
 
 // 1. Login (unauthenticated)
