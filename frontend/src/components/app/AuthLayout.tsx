@@ -21,9 +21,9 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
         />
 
         <div className="relative">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-canvas text-ink grid place-items-center font-semibold">F</div>
-            <span className="text-lg font-semibold tracking-tight">FlowBoard</span>
+          <div className="flex flex-col leading-none" aria-label="Xera FlowBoard">
+            <span className="text-[10px] font-semibold tracking-[0.28em] uppercase text-canvas/75">Xera</span>
+            <span className="text-xl font-bold tracking-tight mt-1.5">FlowBoard</span>
           </div>
         </div>
 
@@ -42,13 +42,13 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
           </ul>
         </div>
 
-        <div className="relative text-xs text-canvas/50">© FlowBoard · Sample app</div>
+        <div className="relative text-xs text-canvas/50">© Xera FlowBoard · Sample app</div>
       </aside>
 
       <main className="flex items-center justify-center bg-canvas-soft px-4 py-12">
         <div className="w-full max-w-sm">
           <div className="md:hidden text-center mb-8">
-            <h1 className="text-2xl font-semibold text-ink">FlowBoard</h1>
+            <h1 className="text-2xl font-semibold text-ink">Xera FlowBoard</h1>
           </div>
 
           <div className="mb-6">

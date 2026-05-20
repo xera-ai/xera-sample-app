@@ -1,4 +1,4 @@
-# FlowBoard — Testing Guide
+# Xera FlowBoard — Testing Guide
 
 > A comprehensive guide for **UI Testing**, **API Testing**, **Security Testing**, and **Performance Testing**.
 

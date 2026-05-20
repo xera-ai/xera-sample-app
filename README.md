@@ -1,8 +1,8 @@
-# FlowBoard — Xera Sample App
+# Xera FlowBoard — Sample App
 
 > A realistic full-stack project management application built as the **official sample target** for the [Xera](https://github.com/xera-ai/xera) testing framework.
 
-FlowBoard is a production-like app with real authentication, RBAC, a REST API, file uploads, and intentional security surfaces — giving Xera a meaningful target for UI, API, security, and performance testing.
+Xera FlowBoard is a production-like app with real authentication, RBAC, a REST API, file uploads, and intentional security surfaces — giving Xera a meaningful target for UI, API, security, and performance testing.
 
 ---
 
@@ -152,7 +152,7 @@ POST   /seed
 
 ## Testing Surfaces
 
-FlowBoard is deliberately built with features that exercise common test scenarios:
+Xera FlowBoard is deliberately built with features that exercise common test scenarios:
 
 | Surface | Location | What to test |
 |---------|----------|--------------|

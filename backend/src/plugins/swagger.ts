@@ -8,9 +8,9 @@ export default fp(async function swaggerPlugin(fastify: FastifyInstance) {
     openapi: {
       openapi: '3.0.3',
       info: {
-        title: 'FlowBoard API',
+        title: 'Xera FlowBoard API',
         version: '1.0.0',
-        description: 'FlowBoard project management API',
+        description: 'Xera FlowBoard project management API',
       },
       components: {
         securitySchemes: {

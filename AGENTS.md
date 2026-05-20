@@ -1,4 +1,4 @@
-# AGENTS.md — FlowBoard Sample Test App
+# AGENTS.md — Xera FlowBoard Sample Test App
 
 This file instructs AI agents (Claude Code, Copilot, Gemini CLI, etc.) on how to work in this repository.
 
@@ -6,7 +6,7 @@ This file instructs AI agents (Claude Code, Copilot, Gemini CLI, etc.) on how to
 
 ## What This App Is
 
-FlowBoard is a full-stack task-management application built as a **realistic test target** for UI, API, security, and performance testing. It is not a production product — it is intentionally designed to expose testable patterns: authentication flows, RBAC, CRUD across related entities, pagination, search, and a full browser UI.
+Xera FlowBoard is a full-stack task-management application built as a **realistic test target** for UI, API, security, and performance testing. It is not a production product — it is intentionally designed to expose testable patterns: authentication flows, RBAC, CRUD across related entities, pagination, search, and a full browser UI.
 
 Do not simplify or strip features for the sake of "cleanliness." Testability requires realistic complexity.
 
