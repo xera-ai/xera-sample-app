@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import React, { useState, useMemo } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { projectsApi, tasksApi } from '../lib/api'
 import type { Task } from '../lib/api'
@@ -7,6 +7,8 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Modal } from '../components/ui/Modal'
 import { Badge } from '../components/ui/Badge'
+import { Card } from '../components/ui/Card'
+import { Avatar } from '../components/ui/Avatar'
 import { KanbanBoard } from '../components/app/KanbanBoard'
 import { useToast } from '../components/ui/Toast'
 
@@ -18,6 +20,14 @@ const defaultTask: Partial<Task> = {
   status: 'todo',
   priority: 'medium',
   dueDate: '',
+}
+
+function formatDate(ts: number) {
+  return new Date(ts * 1000).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
 }
 
 export function ProjectDetailPage() {
@@ -46,6 +56,14 @@ export function ProjectDetailPage() {
     enabled: !!id,
   })
 
+  const membersById = useMemo(() => {
+    const map: Record<string, { name: string }> = {}
+    for (const m of members ?? []) {
+      if (m.user) map[m.userId] = { name: m.user.name }
+    }
+    return map
+  }, [members])
+
   const createMutation = useMutation({
     mutationFn: (data: Partial<Task>) => tasksApi.create(id!, data),
     onSuccess: () => {
@@ -64,28 +82,55 @@ export function ProjectDetailPage() {
     createMutation.mutate(payload)
   }
 
-  if (projectLoading) return <div className="p-8 text-sm text-mute">Loading…</div>
-  if (!project) return <div className="p-8 text-sm text-error">Project not found</div>
+  if (projectLoading)
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="text-sm text-mute">Loading…</div>
+      </main>
+    )
+  if (!project)
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="text-sm text-error">Project not found.</div>
+      </main>
+    )
 
   const tasks = tasksData?.data ?? []
 
   const tabClass = (t: Tab) =>
     [
       'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
-      tab === t ? 'bg-canvas shadow-subtle text-ink' : 'text-mute hover:text-ink',
+      tab === t
+        ? 'bg-canvas shadow-subtle text-ink'
+        : 'text-mute hover:text-ink',
     ].join(' ')
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-ink">{project.name}</h1>
-          {project.description && (
-            <p className="text-sm text-mute mt-0.5">{project.description}</p>
-          )}
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      {/* Breadcrumb */}
+      <Link
+        to="/projects"
+        className="inline-flex items-center gap-1 text-xs text-mute hover:text-ink transition-colors mb-3"
+      >
+        <span aria-hidden>←</span> Projects
+      </Link>
+
+      {/* Hero */}
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
+        <div className="flex items-start gap-4 min-w-0">
+          <Avatar name={project.name} size="lg" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold text-ink truncate">{project.name}</h1>
+            {project.description && (
+              <p className="text-sm text-mute mt-1 max-w-xl">{project.description}</p>
+            )}
+            <p className="text-xs text-mute mt-2">
+              {members?.length ?? 0} member{(members?.length ?? 0) !== 1 ? 's' : ''} ·{' '}
+              Created {formatDate(project.createdAt)}
+            </p>
+          </div>
         </div>
-        <Button onClick={() => setShowModal(true)}>Add Task</Button>
+        <Button onClick={() => setShowModal(true)}>+ Add Task</Button>
       </div>
 
       {/* Tabs */}
@@ -99,33 +144,56 @@ export function ProjectDetailPage() {
       </div>
 
       {/* Tab content */}
-      {tab === 'board' && (
-        <>
-          {tasksLoading ? (
-            <div className="text-sm text-mute">Loading tasks…</div>
-          ) : (
-            <KanbanBoard tasks={tasks} />
-          )}
-        </>
-      )}
+      {tab === 'board' &&
+        (tasksLoading ? (
+          <div className="grid grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-40 rounded-lg bg-canvas-soft/60 border border-hairline animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <KanbanBoard tasks={tasks} membersById={membersById} />
+        ))}
 
       {tab === 'members' && (
-        <div className="bg-canvas rounded-xl border border-hairline shadow-subtle overflow-hidden">
+        <Card className="p-0 overflow-hidden">
           {!members || members.length === 0 ? (
-            <div className="py-10 text-center text-sm text-mute">No members yet.</div>
+            <div className="py-12 text-center text-sm text-mute">No members yet.</div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-hairline">
-                  <th className="text-left px-4 py-2.5 text-xs font-medium text-mute">Name</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-medium text-mute">Role</th>
+                <tr className="border-b border-hairline bg-canvas-soft/60">
+                  <th className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-mute">
+                    Name
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-mute">
+                    Role
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {members.map((m, i) => (
-                  <tr key={m.userId} className={i < members.length - 1 ? 'border-b border-hairline' : ''}>
-                    <td className="px-4 py-2.5 text-ink">{m.user?.name ?? m.userId}</td>
-                    <td className="px-4 py-2.5">
+                  <tr
+                    key={m.userId}
+                    className={[
+                      'hover:bg-canvas-soft/50 transition-colors',
+                      i < members.length - 1 ? 'border-b border-hairline' : '',
+                    ].join(' ')}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={m.user?.name ?? m.userId} size="sm" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-ink truncate">
+                            {m.user?.name ?? m.userId}
+                          </p>
+                          {m.user?.email && (
+                            <p className="text-xs text-mute truncate">{m.user.email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
                       <Badge variant={m.role === 'admin' ? 'admin' : 'user'} />
                     </td>
                   </tr>
@@ -133,7 +201,7 @@ export function ProjectDetailPage() {
               </tbody>
             </table>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Add Task Modal */}
@@ -161,7 +229,9 @@ export function ProjectDetailPage() {
               <select
                 className="form-input"
                 value={form.status}
-                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as Task['status'] }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, status: e.target.value as Task['status'] }))
+                }
               >
                 <option value="todo">Todo</option>
                 <option value="in_progress">In Progress</option>
@@ -173,7 +243,9 @@ export function ProjectDetailPage() {
               <select
                 className="form-input"
                 value={form.priority}
-                onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as Task['priority'] }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, priority: e.target.value as Task['priority'] }))
+                }
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
