@@ -20,14 +20,6 @@ Xera FlowBoard is a production-like app with real authentication, RBAC, a REST A
 |---|---|
 | ![Task](docs/screenshots/05-task.jpg) | ![Admin](docs/screenshots/06-admin.jpg) |
 
-Regenerate after UI changes (Playwright is intentionally not a dependency — install on demand):
-
-```bash
-npm i --no-save playwright && npx playwright install chromium
-npm run dev:backend & npm run dev:frontend &  # both must be running
-npm run screenshots
-```
-
 ---
 
 ## Getting Started
