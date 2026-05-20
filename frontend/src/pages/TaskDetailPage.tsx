@@ -439,7 +439,7 @@ export function TaskDetailPage() {
                   </option>
                 ))}
               </select>
-              {assignee && (
+              {assignee?.name && (
                 <div className="flex items-center gap-2 mt-2">
                   <Avatar name={assignee.name} size="sm" className="!h-6 !w-6 !text-[9px]" />
                   <span className="text-xs text-body">{assignee.name}</span>

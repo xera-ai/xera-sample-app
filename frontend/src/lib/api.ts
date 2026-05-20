@@ -165,7 +165,7 @@ export const authApi = {
 // --- Projects API ---
 
 export const projectsApi = {
-  list: (params?: { page?: number; limit?: number }) =>
+  list: (params?: { page?: number; limit?: number; search?: string }) =>
     api.get<PaginatedResponse<Project>>('/projects', { params }).then((r) => r.data),
 
   get: (id: string) => api.get<{ project: Project }>(`/projects/${id}`).then((r) => r.data.project),
