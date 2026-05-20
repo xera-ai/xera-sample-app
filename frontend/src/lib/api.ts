@@ -259,7 +259,7 @@ export const attachmentsApi = {
 // --- API Keys ---
 
 export const apiKeysApi = {
-  list: () => api.get<ApiKey[]>('/api-keys').then((r) => r.data),
+  list: () => api.get<{ data: ApiKey[] }>('/api-keys').then((r) => r.data.data),
 
   create: (data: { name: string }) =>
     api.post<ApiKey & { rawKey: string }>('/api-keys', data).then((r) => r.data),
