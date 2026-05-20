@@ -10,15 +10,15 @@ Xera FlowBoard is a production-like app with real authentication, RBAC, a REST A
 
 | Sign in | Dashboard |
 |---|---|
-| ![Login](docs/screenshots/01-login.png) | ![Dashboard](docs/screenshots/02-dashboard.png) |
+| ![Login](docs/screenshots/01-login.jpg) | ![Dashboard](docs/screenshots/02-dashboard.jpg) |
 
 | Projects | Kanban board |
 |---|---|
-| ![Projects](docs/screenshots/03-projects.png) | ![Kanban](docs/screenshots/04-kanban.png) |
+| ![Projects](docs/screenshots/03-projects.jpg) | ![Kanban](docs/screenshots/04-kanban.jpg) |
 
 | Task detail | Admin · Users |
 |---|---|
-| ![Task](docs/screenshots/05-task.png) | ![Admin](docs/screenshots/06-admin.png) |
+| ![Task](docs/screenshots/05-task.jpg) | ![Admin](docs/screenshots/06-admin.jpg) |
 
 Regenerate after UI changes (Playwright is intentionally not a dependency — install on demand):
 
