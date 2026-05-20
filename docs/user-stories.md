@@ -1,4 +1,4 @@
-# FlowBoard — User Stories
+# Xera FlowBoard — User Stories
 
 > This document is intended for Business Analysts, Product Owners, and Testers to understand system features and write user stories / acceptance criteria.
 
