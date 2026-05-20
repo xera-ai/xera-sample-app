@@ -156,6 +156,46 @@ Environment variables (backend):
 
 ---
 
+## Release & Docker images
+
+Multi-arch images (`linux/amd64` + `linux/arm64`) are published to GHCR by `.github/workflows/docker-publish.yml`:
+
+- `ghcr.io/xera-ai/xera-sample-app-backend`
+- `ghcr.io/xera-ai/xera-sample-app-frontend`
+
+### Tag semantics
+
+| Tag | When it moves | Use for |
+|---|---|---|
+| `:latest` | Only on `git tag v*` push | Stable release pulls (default in `docker-compose.prod.yml`) |
+| `:X.Y.Z`, `:X.Y`, `:X` | On `git tag v*` push | Pin to a specific semver |
+| `:edge`, `:main` | Every push to `main` | Bleeding-edge / preview |
+| `:sha-xxxxxxx` | Every push | Reproducible per-commit pin |
+
+**Don't tag `:latest` manually** — the workflow owns it.
+
+### Cutting a release
+
+```bash
+git tag -a v0.2.0 -m "v0.2.0 — short summary"
+git push origin v0.2.0
+gh release create v0.2.0 --title "v0.2.0 — …" --notes "…"
+```
+
+That triggers the publish workflow once for the tag push, producing `:0.2.0`, `:0.2`, `:0`, and `:latest`. Note: docker/metadata-action strips the `v` prefix — the image tag is `:0.2.0`, not `:v0.2.0`. The git tag keeps the `v`.
+
+### Running from published images
+
+```bash
+curl -O https://raw.githubusercontent.com/xera-ai/xera-sample-app/main/docker-compose.prod.yml
+docker compose -f docker-compose.prod.yml up -d   # uses :latest
+TAG=0.1.0 docker compose -f docker-compose.prod.yml up -d   # pin a release
+```
+
+UI on `:8080`, API on `:3000`.
+
+---
+
 ## Code Style
 
 - TypeScript strict mode throughout
